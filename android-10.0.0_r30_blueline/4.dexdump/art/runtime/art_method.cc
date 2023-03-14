@@ -187,7 +187,7 @@ extern "C" void dumpDexOver() REQUIRES_SHARED(Locks::mutator_lock_) {
         char szProcName[256] = {0};
         int procid = getpid();
         sprintf(szCmdline,"/proc/%d/cmdline", procid);//获取进程id
-        fcmdline = open(szCmdline, O_CREAT|O_RDONLY,0644); //打开进程参数文件 /proc/pid/cmdline
+        fcmdline = open(szCmdline, O_RDONLY,0644); //打开进程参数文件 /proc/pid/cmdline
         if(fcmdline >0)
         {
             result=read(fcmdline, szProcName,256); //得到 szProcName
@@ -222,7 +222,7 @@ extern "C" void dumpDexOver() REQUIRES_SHARED(Locks::mutator_lock_) {
         mkdir(dexfilepath,0777);
         memset(dexfilepath,0,1000);
         sprintf(dexfilepath,"/sdcard/Android/data/%s/files/dump/%d_dexfile_repair.dex",packageName,size_int_);
-        int dexfilefp=open(dexfilepath,O_CREAT|O_RDONLY,0666);
+        int dexfilefp=open(dexfilepath,O_RDONLY,0666);
         if(dexfilefp>0){
           close(dexfilefp);
           dexfilefp=0;
@@ -271,7 +271,7 @@ extern "C" void dumpdexfilebyExecute(ArtMethod* artmethod)  REQUIRES_SHARED(Lock
     char szProcName[256] = {0};
     int procid = getpid();
     sprintf(szCmdline,"/proc/%d/cmdline", procid);//获取进程id
-    fcmdline = open(szCmdline, O_CREAT|O_RDONLY,0644); //打开进程参数文件 /proc/pid/cmdline
+    fcmdline = open(szCmdline, O_RDONLY,0644); //打开进程参数文件 /proc/pid/cmdline
     if(fcmdline >0)
     {
         result=read(fcmdline, szProcName,256); //得到 szProcName
@@ -305,7 +305,7 @@ extern "C" void dumpdexfilebyExecute(ArtMethod* artmethod)  REQUIRES_SHARED(Lock
     mkdir(dexfilepath,0777);
     memset(dexfilepath,0,1000);
     sprintf(dexfilepath,"/sdcard/Android/data/%s/files/dump/%d_dexfile_execute.dex",packageName,size_int_);
-    int dexfilefp=open(dexfilepath,O_CREAT|O_RDONLY,0666);
+    int dexfilefp=open(dexfilepath,O_RDONLY,0666);
     if(dexfilefp>0){
       close(dexfilefp);
       dexfilefp=0;
@@ -375,7 +375,7 @@ extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::muta
                 char szProcName[256] = {0};
                 int procid = getpid();
                 sprintf(szCmdline,"/proc/%d/cmdline", procid);//获取进程id
-                fcmdline = open(szCmdline, O_CREAT|O_RDONLY,0644); //打开进程参数文件 /proc/pid/cmdline
+                fcmdline = open(szCmdline, O_RDONLY,0644); //打开进程参数文件 /proc/pid/cmdline
                 if(fcmdline >0)
                 {
                     result=read(fcmdline, szProcName,256); //得到 szProcName
@@ -410,7 +410,7 @@ extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::muta
 					 deepstr="_deep";
 				}
 				sprintf(dexfilepath,"/sdcard/Android/data/%s/files/dump/%d%s_dexfile.dex",packageName,size_int_,deepstr);
-				int dexfilefp=open(dexfilepath,O_CREAT|O_RDONLY,0666);
+				int dexfilefp=open(dexfilepath,O_RDONLY,0666);
 				if(dexfilefp>0){
 					close(dexfilefp);
 					dexfilefp=0;
