@@ -172,11 +172,11 @@ extern "C" char *base64_encode(char *str,long str_len,long* outlen){
 //dumpdexfilebyCookie
 extern "C" void dumpDexOver() REQUIRES_SHARED(Locks::mutator_lock_) {
     if(dex_map.size()<=0){
-    		LOG(ERROR) << "mikrom dumpDexOver dex_map.size()<=0";
+    		LOG(ERROR) << "low_duck dumpDexOver dex_map.size()<=0";
         return;
     }
     char *dexfilepath=(char*)malloc(sizeof(char)*1000);
-    LOG(ERROR) << "mikrom ArtMethod::dumpDexOver";
+    LOG(ERROR) << "low_duck ArtMethod::dumpDexOver";
     int result=0;
 
 
@@ -200,16 +200,10 @@ extern "C" void dumpDexOver() REQUIRES_SHARED(Locks::mutator_lock_) {
         }
 
         if(!szProcName[0]){
-           LOG(ERROR) << "ArtMethod::dumpdexfilebyArtMethod,szProcName[0] is null";
+           LOG(ERROR) << "ArtMethod ::dumpdexfilebyArtMethod,szProcName[0] is null";
         }
 
         char* packageName = szProcName;
-
-
-
-
-
-
 
 
     std::map<void*, size_t>::iterator iter;
@@ -234,7 +228,7 @@ extern "C" void dumpDexOver() REQUIRES_SHARED(Locks::mutator_lock_) {
               result=write(fp,(void*)begin_,size_);
               if(result<0)
               {
-                  LOG(ERROR) << "mikrom ArtMethod::dumpDexOver,open dexfilepath error";
+                  LOG(ERROR) << "low_duck ArtMethod::dumpDexOver,open dexfilepath error";
               }
               fsync(fp);
               close(fp);
@@ -248,121 +242,16 @@ extern "C" void dumpDexOver() REQUIRES_SHARED(Locks::mutator_lock_) {
         dexfilepath=nullptr;
     }
 }
-//在函数即将调用解释器执行前进行dump。
-extern "C" void dumpdexfilebyExecute(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::mutator_lock_) {
-    if(artmethod==nullptr){
-        LOG(ERROR)<< "mikrom ArtMethod::dumpdexfilebyExecute artmethod is null";
-        return;
-    }
-    char *dexfilepath=(char*)malloc(sizeof(char)*1000);
-    if(dexfilepath==nullptr)
-    {
-    		std::ostringstream oss;
-    		oss<<"mikrom ArtMethod::dumpdexfilebyArtMethod,methodname:"<<artmethod->PrettyMethod().c_str()<<"malloc 1000 byte failed";
-        LOG(ERROR)<< oss.str();
-        return;
-    }
-    int result=0;
 
-    //char* packageName=ArtMethod::GetPackageName(); 替换成查询进程获取
-
-    int fcmdline =-1;
-    char szCmdline[64]= {0};
-    char szProcName[256] = {0};
-    int procid = getpid();
-    sprintf(szCmdline,"/proc/%d/cmdline", procid);//获取进程id
-    fcmdline = open(szCmdline, O_RDONLY,0644); //打开进程参数文件 /proc/pid/cmdline
-    if(fcmdline >0)
-    {
-        result=read(fcmdline, szProcName,256); //得到 szProcName
-        if(result<0)
-        {
-            LOG(ERROR) << "ArtMethod::dumpdexfilebyArtMethod,open cmdline file error";
-        }
-        close(fcmdline);
-
-    }
-
-    if(!szProcName[0]){
-       LOG(ERROR) << "ArtMethod::dumpdexfilebyArtMethod,szProcName[0] is null";
-    }
-
-    char* packageName = szProcName;
-
-    const DexFile* dex_file = artmethod->GetDexFile();
-    if(dex_file==nullptr){
-        LOG(ERROR)<< "mikrom ArtMethod::dumpdexfilebyExecute dex_file is null";
-        return;
-    }
-    const uint8_t* begin_=dex_file->Begin();  // Start of data.
-    size_t size_=dex_file->Size();  // Length of data.
-
-    memset(dexfilepath,0,1000);
-    int size_int_=(int)size_;
-
-    memset(dexfilepath,0,1000);
-    sprintf(dexfilepath,"/sdcard/Android/data/%s/files/dump",packageName);
-    mkdir(dexfilepath,0777);
-    memset(dexfilepath,0,1000);
-    sprintf(dexfilepath,"/sdcard/Android/data/%s/files/dump/%d_dexfile_execute.dex",packageName,size_int_);
-    int dexfilefp=open(dexfilepath,O_RDONLY,0666);
-    if(dexfilefp>0){
-      close(dexfilefp);
-      dexfilefp=0;
-
-      }else{
-              int fp=open(dexfilepath,O_CREAT|O_APPEND|O_RDWR,0666);
-              if(fp>0)
-              {
-                  result=write(fp,(void*)begin_,size_);
-                  if(result<0)
-                  {
-                    LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyArtMethod,open dexfilepath error";
-                  }
-                  fsync(fp);
-                  close(fp);
-                  memset(dexfilepath,0,1000);
-                  sprintf(dexfilepath,"/sdcard/Android/data/%s/files/dump/%d_classlist_execute.txt",packageName,size_int_);
-                  int classlistfile=open(dexfilepath,O_CREAT|O_APPEND|O_RDWR,0666);
-                  if(classlistfile>0)
-                  {
-                        for (size_t ii= 0; ii< dex_file->NumClassDefs(); ++ii)
-                        {
-                            const dex::ClassDef& class_def = dex_file->GetClassDef(ii);
-                            const char* descriptor = dex_file->GetClassDescriptor(class_def);
-                            result=write(classlistfile,(void*)descriptor,strlen(descriptor));
-                            if(result<0)
-                            {
-                                LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyExecute,write classlistfile file error";
-                            }
-                            const char* temp="\n";
-                            result=write(classlistfile,(void*)temp,1);
-                            if(result<0)
-                            {
-                                LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyExecute,write classlistfile file error";
-                            }
-                            fsync(classlistfile);
-                            close(classlistfile);
-
-                        }
-                  }
-              }
-      }
-      if(dexfilepath!=nullptr)
-      {
-          free(dexfilepath);
-          dexfilepath=nullptr;
-      }
-}
 
 //主动调用函数的dump处理
 extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::mutator_lock_) {
-            //LOG(ERROR) << "mikrom ArtMethod::dumpArtMethod "<<artmethod->PrettyMethod().c_str();
+            //LOG(ERROR) << "low_duck ArtMethod::dumpArtMethod "<<artmethod->PrettyMethod().c_str();
 			char *dexfilepath=(char*)malloc(sizeof(char)*1000);
 			if(dexfilepath==nullptr)
 			{
 				std::ostringstream oss;
-				oss<<"mikrom ArtMethod::dumpArtMethodinvoked,methodname:"<<artmethod->PrettyMethod().c_str()<<"malloc 1000 byte failed";
+				oss<<"low_duck ArtMethod::dumpArtMethodinvoked,methodname:"<<artmethod->PrettyMethod().c_str()<<"malloc 1000 byte failed";
 				LOG(ERROR) << oss.str();
 				return;
 			}
@@ -415,7 +304,7 @@ extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::muta
 					close(dexfilefp);
 					dexfilefp=0;
 				}else{
-					LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyArtMethod save dex_map";
+					LOG(ERROR) << "low_duck ArtMethod::dumpdexfilebyArtMethod save dex_map";
 					dex_map.insert(std::pair<void*,size_t>((void*)begin_,size_));
 					int fp=open(dexfilepath,O_CREAT|O_APPEND|O_RDWR,0666);
 					if(fp>0)
@@ -423,7 +312,7 @@ extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::muta
 							result=write(fp,(void*)begin_,size_);
 							if(result<0)
 							{
-								 LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyArtMethod,open dexfilepath file error";
+								 LOG(ERROR) << "low_duck ArtMethod::dumpdexfilebyArtMethod,open dexfilepath file error";
 							}
 							fsync(fp);
 							close(fp);
@@ -439,14 +328,14 @@ extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::muta
 												result=write(classlistfile,(void*)descriptor,strlen(descriptor));
 												if(result<0)
 												{
-														LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyArtMethod,write classlistfile file error";
+														LOG(ERROR) << "low_duck ArtMethod::dumpdexfilebyArtMethod,write classlistfile file error";
 
 														}
 												const char* temp="\n";
 												result=write(classlistfile,(void*)temp,1);
 												if(result<0)
 												{
-														LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyArtMethod,write classlistfile file error";
+														LOG(ERROR) << "low_duck ArtMethod::dumpdexfilebyArtMethod,write classlistfile file error";
 
 												}
 										}
@@ -461,7 +350,7 @@ extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::muta
 				CodeItemDataAccessor accessor(*dex_, dex_->GetCodeItem(artmethod->GetCodeItemOffset()));
 				if (LIKELY(code_item != nullptr))
 				{
-							//LOG(ERROR) << "mikrom dumpArtMethodinvoked,methodname:"<<artmethod->PrettyMethod().c_str()<<" write bin";
+							//LOG(ERROR) << "low_duck dumpArtMethodinvoked,methodname:"<<artmethod->PrettyMethod().c_str()<<" write bin";
 							int code_item_len = 0;
 							uint8_t *item=(uint8_t *) code_item;
 							if (accessor.TriesSize()>0) {
@@ -486,17 +375,17 @@ extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::muta
 									result=write(fp2,(void*)dexfilepath,contentlength);
 									if(result<0)
 									{
-											LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyArtMethod,write ins file error";
+											LOG(ERROR) << "low_duck ArtMethod::dumpdexfilebyArtMethod,write ins file error";
 									}
 									long outlen=0;
 									char* base64result=base64_encode((char*)item,(long)code_item_len,&outlen);
 									result=write(fp2,base64result,outlen);
 									if(result<0){
-											LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyArtMethod,write ins file error";
+											LOG(ERROR) << "low_duck ArtMethod::dumpdexfilebyArtMethod,write ins file error";
 									}
 									result=write(fp2,"};",2);
 									if(result<0){
-										 LOG(ERROR) << "mikrom ArtMethod::dumpdexfilebyArtMethod,write ins file error";
+										 LOG(ERROR) << "low_duck ArtMethod::dumpdexfilebyArtMethod,write ins file error";
 									}
 									fsync(fp2);
 									close(fp2);
@@ -511,9 +400,9 @@ extern "C" void dumpArtMethod(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::muta
 				free(dexfilepath);
 				dexfilepath=nullptr;
 			}
-			//LOG(ERROR) << "mikrom ArtMethod::dumpArtMethod over "<<artmethod->PrettyMethod().c_str();
+			//LOG(ERROR) << "low_duck ArtMethod::dumpArtMethod over "<<artmethod->PrettyMethod().c_str();
 }
-extern "C" void fartextInvoke(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::mutator_lock_) {
+extern "C" void lowDuckInvoke(ArtMethod* artmethod)  REQUIRES_SHARED(Locks::mutator_lock_) {
     if(artmethod->IsNative()||artmethod->IsAbstract()){
         return;
     }
@@ -769,7 +658,7 @@ void ArtMethod::Invoke(Thread* self, uint32_t* args, uint32_t args_size, JValue*
     //else{
     //	if(ArtMethod::IsInvokePrint()){
     //				std::ostringstream oss;
-    //				oss<<"mikrom art invoke "<<this->PrettyMethod().c_str();
+    //				oss<<"low_duck art invoke "<<this->PrettyMethod().c_str();
     //				LOG(ERROR) <<oss.str();
     //		}
     //}

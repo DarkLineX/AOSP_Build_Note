@@ -434,7 +434,8 @@ public final class DexFile {
     private static native void setTrusted(Object cookie);
 
     //add
-    private static native void fartextMethodCode(Object m);
+    private static native void lowDuckMethodCode(Object m);
+    private static native void dumpRepair();
     //add end
 
     /*

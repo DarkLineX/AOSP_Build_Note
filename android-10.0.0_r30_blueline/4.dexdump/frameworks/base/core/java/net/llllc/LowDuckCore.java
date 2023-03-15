@@ -144,93 +144,37 @@ public class LowDuckCore {
         resultClassloader = mApplication.getClassLoader();
         return resultClassloader;
     }
-    
-    //取指定类的所有构造函数，和所有函数，使用dumpMethodCode函数来把这些函数给保存出来
-    public static int loadClassAndInvoke(ClassLoader appClassloader, String eachclassname, Method dumpMethodCode_method) {
-        Class resultclass = null;
-        Log.e("low_duck", "go into loadClassAndInvoke->" + "classname:" + eachclassname);
-        try {
-            resultclass = appClassloader.loadClass(eachclassname);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("low_duck", "load class err1:"+e.getMessage());
-            return -2;
-        } catch (Error e) {
-            Log.e("low_duck", "load class err2:"+e.getMessage());
-            e.printStackTrace();
-            return -2;
-        }
-        if (resultclass != null) {
-            try {
-                Constructor<?> cons[] = resultclass.getDeclaredConstructors();
-                for (Constructor<?> constructor : cons) {
-                    if (dumpMethodCode_method != null) {
-                        try {
-                            if(constructor.getName().contains("cn.mik.")){
-                                continue;
-                            }
-                            Log.e("low_duck", "classname:" + eachclassname+ " constructor->invoke "+constructor.getName());
-                            dumpMethodCode_method.invoke(null, constructor);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            continue;
-                        } catch (Error e) {
-                            e.printStackTrace();
-                            continue;
-                        }
-                    } else {
-                        Log.e("low_duck", "dumpMethodCode_method is null ");
-                    }
 
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.e("low_duck", "Constructor invoke err1:"+e.getMessage());
-                return -3;
-            } catch (Error e) {
-                e.printStackTrace();
-                Log.e("low_duck", "Constructor invoke err2:"+e.getMessage());
-                return -3;
-            }
+    public static ClassLoader getClassLoaderByClassName(String clsname){
+        Log.e("low_duck", "getClassLoaderByClassName clsname:"+clsname);
+        ClassLoader appClassloader = getClassloader();
+        if(appClassloader==null){
+            Log.e("low_duck", "appClassloader is null");
+            return null;
+        }
+        ClassLoader parentClassloader=appClassloader.getParent();
+        if(appClassloader.toString().indexOf("java.lang.BootClassLoader")==-1)
+        {
             try {
-                Method[] methods = resultclass.getDeclaredMethods();
-                if (methods != null) {
-                    Log.e("low_duck", "classname:" + eachclassname+ " start invoke");
-                    for (Method m : methods) {
-                        if (dumpMethodCode_method != null) {
-                            try {
-                                if(m.getName().contains("cn.mik.")){
-                                    continue;
-                                }
-                                Log.e("low_duck", "classname:" + eachclassname+ " method->invoke:" + m.getName());
-                                dumpMethodCode_method.invoke(null, m);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                Log.e("low_duck", "Method invoke err1:"+e.getMessage());
-                                continue;
-                            } catch (Error e) {
-                                e.printStackTrace();
-                                Log.e("low_duck", "Method invoke err2:"+e.getMessage());
-                                continue;
-                            }
-                        } else {
-                            Log.e("low_duck", "dumpMethodCode_method is null ");
-                        }
-                    }
-                    Log.e("low_duck", "go into loadClassAndInvoke->"   + "classname:" + eachclassname+ " end invoke");
-                    return 0;
-                }
-            } catch (Exception e) {
+                appClassloader.loadClass(clsname);
+                return appClassloader;
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
-                Log.e("low_duck", "Method invoke err3:"+e.getMessage());
-                return -4;
-            } catch (Error e) {
-                e.printStackTrace();
-                Log.e("low_duck", "Method invoke err4:"+e.getMessage());
-                return -4;
             }
         }
-        return 0;
+        while(parentClassloader!=null){
+            if(parentClassloader.toString().indexOf("java.lang.BootClassLoader")==-1)
+            {
+                try {
+                    appClassloader.loadClass(clsname);
+                    return appClassloader;
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            parentClassloader=parentClassloader.getParent();
+        }
+        return null;
     }
 
 }

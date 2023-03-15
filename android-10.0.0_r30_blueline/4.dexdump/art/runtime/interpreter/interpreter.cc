@@ -40,11 +40,6 @@
 namespace art {
 namespace interpreter {
 
-
-//add
-extern "C" void dumpdexfilebyExecute(ArtMethod* artmethod);
-//addend
-
 ALWAYS_INLINE static ObjPtr<mirror::Object> ObjArg(uint32_t arg)
     REQUIRES_SHARED(Locks::mutator_lock_) {
   return reinterpret_cast<mirror::Object*>(arg);
@@ -483,8 +478,6 @@ void EnterInterpreterFromInvoke(Thread* self,
                 break;
         }
        //add end
-
-
         ObjPtr<mirror::Object> o =
             reinterpret_cast<StackReference<mirror::Object>*>(&args[arg_pos])->AsMirrorPtr();
         shadow_frame->SetVRegReference(cur_reg, o);
@@ -502,6 +495,7 @@ void EnterInterpreterFromInvoke(Thread* self,
         break;
     }
   }
+
   self->EndAssertNoThreadSuspension(old_cause);
   // Do this after populating the shadow frame in case EnsureInitialized causes a GC.
   if (method->IsStatic() && UNLIKELY(!method->GetDeclaringClass()->IsInitialized())) {
@@ -521,7 +515,7 @@ void EnterInterpreterFromInvoke(Thread* self,
           if (result != nullptr) {
             *result = r;
           }
-          //LOG(ERROR) << "fartext Execute over"<<method->PrettyMethod().c_str();
+          //LOG(ERROR) << "lowDuck Execute over"<<method->PrettyMethod().c_str();
           return;
       }else{
           JValue r = Execute(self, accessor, *shadow_frame, JValue(), stay_in_interpreter);

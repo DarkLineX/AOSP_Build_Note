@@ -56,8 +56,8 @@ namespace art {
 
 
 //add
-extern "C" void fartextInvoke(ArtMethod* artmethod);
-extern "C" ArtMethod* jobject2ArtMethod(JNIEnv* env, jobject javaMethod);
+extern "C" void lowDuckInvoke(ArtMethod* artmethod);
+extern "C" ArtMethod* lowDuck2ArtMethod(JNIEnv* env, jobject javaMethod);
 extern "C" void dumpDexOver();
 //add end
 
@@ -530,14 +530,23 @@ static jobjectArray DexFile_getClassNameList(JNIEnv* env, jclass, jobject cookie
 
 
 //add function 将ava的Method转换成ArtMethod。然后主动调用
-static void DexFile_fartextMethodCode(JNIEnv* env, jclass,jobject method) {
+static void DexFile_lowDuckMethodCode(JNIEnv* env, jclass,jobject method) {
   if(method!=nullptr)
   {
-      ArtMethod* proxy_method = jobject2ArtMethod(env, method);
-      fartextInvoke(proxy_method);
+      ArtMethod* proxy_method = lowDuck2ArtMethod(env, method);
+      lowDuckInvoke(proxy_method);
   }
   return;
 }
+
+
+static void DexFile_dumpRepair(JNIEnv* env, jclass){
+    if(env==nullptr){
+        return;
+    }
+    dumpDexOver();
+}
+
 //add end
 
 static jint GetDexOptNeeded(JNIEnv* env,
@@ -971,7 +980,8 @@ static JNINativeMethod gMethods[] = {
                 "(Ljava/lang/String;Ljava/lang/String;)[Ljava/lang/String;"),
   NATIVE_METHOD(DexFile, setTrusted, "(Ljava/lang/Object;)V"),
   //add
-  NATIVE_METHOD(DexFile, fartextMethodCode,"(Ljava/lang/Object;)V"),
+  NATIVE_METHOD(DexFile, lowDuckMethodCode,"(Ljava/lang/Object;)V"),
+  NATIVE_METHOD(DexFile, dumpRepair,"()V"),
   //add end
 };
 
